@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IP Check</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Lightweight styling -->
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css" />
+  <style>
+    .grid { display: grid; gap: 1rem; }
+    @media (min-width: 900px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    .kv { display: grid; grid-template-columns: 1fr 2fr; gap: .5rem .75rem; align-items: start; }
+    .kv > div:nth-child(2n) {
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+    }
+    .kv > div:nth-child(2n-1) {
+      white-space: nowrap;
+    }   
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .muted { opacity: .7; }
+    .pill { padding: .15rem .5rem; border-radius: 999px; border: 1px solid var(--muted-border-color); }
+    .ok { border-color: var(--success); }
+    .warn { border-color: var(--warning); }
+    .bad { border-color: var(--del-color); }
+    .list { margin: 0; padding-left: 1rem; }
+    .list li { margin: 0; }
+  </style>
+</head>
+<body>
+  <main class="container"
+        x-data="ipView()"
+        x-init="load()">
+
+    <header class="muted" style="margin: 1rem 0;">
+      <h1 style="margin:0;">Abuse IPDB Microservice</h1>
+      
+      <p class="muted">
+            Thanks for the visit. Here's the Abuse IPDB information on your IP address.
+      </p>
+    </header>
+
+    <div role="group" class="grid">
+      <!-- Card 1 -->
+      <article>
+        <header><strong>Address</strong></header>
+        <div class="kv">
+          <div class="muted">IP</div>
+          <div class="mono" x-text="safe(data.ipAddress)"></div>
+
+          <div class="muted">Public</div>
+          <div>
+            <span class="pill" :class="data.isPublic ? 'ok' : 'bad'"
+                  x-text="boolLabel(data.isPublic)"></span>
+          </div>
+
+          <div class="muted">Version</div>
+          <div class="mono" x-text="safe(data.ipVersion)"></div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article>
+        <header><strong>Network</strong></header>
+        <div class="kv">
+          <div class="muted">Country</div>
+          <div class="mono" x-text="safe(data.countryCode)"></div>
+
+          <div class="muted">Usage</div>
+          <div x-text="safe(data.usageType)"></div>
+
+          <div class="muted">ISP</div>
+          <div x-text="safe(data.isp)"></div>
+
+          <div class="muted">Domain</div>
+          <div class="mono" x-text="safe(data.domain)"></div>
+
+          <div class="muted">Hostnames</div>
+          <div>
+            <template x-if="Array.isArray(data.hostnames) && data.hostnames.length">
+              <ul class="list">
+                <template x-for="h in data.hostnames" :key="h">
+                  <li class="mono" x-text="h"></li>
+                </template>
+              </ul>
+            </template>
+            <span x-show="!data.hostnames || data.hostnames.length === 0" class="muted">—</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article>
+        <header><strong>Risk</strong></header>
+        <div class="kv">
+          <div class="muted">Abuse Score</div>
+          <div>
+            <span class="pill"
+                  :class="scoreClass(data.abuseConfidenceScore)"
+                  x-text="safe(data.abuseConfidenceScore)"></span>
+          </div>
+
+          <div class="muted">Tor Exit</div>
+          <div>
+            <span class="pill" :class="data.isTor ? 'bad' : 'ok'"
+                  x-text="boolLabel(data.isTor)"></span>
+          </div>
+
+          <div class="muted">Total Reports</div>
+          <div>
+            <span class="pill"
+                  :class="scoreClass(data.totalReports)"
+                  x-text="safe(data.totalReports)"></span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <footer style="margin-top:1rem; text-align:center;">
+        <small x-show="loaded" class="muted">Last updated: <span x-text="lastUpdated"></span></small><br>
+        <a href="https://dev.seanbrown.org/ipcheck/" target="_blank" rel="noopener noreferrer">
+          → Read the AWS infrastructure explainer →
+        </a>
+    </footer>
+  </main>
+
+  <!-- Alpine (served via Express static mount) -->
+  <script type="module" src="/js/alpine.js">
+  </script>
+</body>
+</html>
