@@ -26,15 +26,15 @@ dist/
 .pytest_cache/
 
 # --- AWS / Terraform ---
-tofu/
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
-crash.log
-override.tf
-override.tf.json
-*.tfvars
-*.tfvars.json
+tofu/.terraform/
+tofu/.terraform.*
+tofu/terraform.tfstate
+tofu/terraform.tfstate.*
+tofu/crash.log
+tofu/override.tf
+tofu/override.tf.json
+tofu/*.tfvars
+tofu/*.tfvars.json
 
 # --- Env + Secrets ---
 .env
