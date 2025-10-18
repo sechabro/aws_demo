@@ -9,8 +9,8 @@ import { fileURLToPath } from 'url';
 const fileName = fileURLToPath(import.meta.url);
 const dirName = path.dirname(fileName);
 
-const { GATEWAY } = process.env;
-if (!GATEWAY) throw new Error('GATEWAY env var is required');
+const { GATEWAY, REFERER } = process.env;
+if (!GATEWAY) throw new Error('one or more env var missing');
 
 const app = express();
 
@@ -34,12 +34,22 @@ const dataLimiter = rateLimit({
   message: { error: 'Request limit exceeded. ' },
 });
 
-// Serve files under / (so '/' serves static/index.html if it exists)
+// Serve files from here
 app.use(express.static(path.join(dirName, 'static')));
 
+// GET /
+app.get('/', (req, res) => {
+    res.sendFile(path.join(dirName, 'static', 'html', 'index.html'))
+});
+
+
+// GET /data
 app.use('/data', dataLimiter);
 app.get('/data', async (req, res) => {
-    
+    const referer = req.get('referer') || '';
+    if (!referer.startsWith(`${REFERER}`)) {
+        return res.status(403).send('Forbidden');
+    }
     try {
         const ip = `${req.ip}`;
         //const ip = "enter ip address here for local testing";
