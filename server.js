@@ -1,6 +1,7 @@
 //import 'dotenv/config'; //<-- for dev only
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -9,8 +10,14 @@ import { fileURLToPath } from 'url';
 const fileName = fileURLToPath(import.meta.url);
 const dirName = path.dirname(fileName);
 
-const { GATEWAY, REFERER } = process.env;
-if (!GATEWAY) throw new Error('one or more env var missing');
+// const { GATEWAY, REFERRER } = process.env;
+const referrerPath = process.env.REFERRER;
+const gatewayPath = process.env.GATEWAY;
+
+if (!gatewayPath || !referrerPath) throw new Error("missing environment variable");
+const gatewayBase = (await readFile(gatewayPath, 'utf8')).trim(); 
+const GATEWAY = new URL(gatewayBase);
+const REFERRER = (await readFile(referrerPath, 'utf8')).trim();
 
 const app = express();
 
@@ -47,7 +54,7 @@ app.get('/', (req, res) => {
 app.use('/data', dataLimiter);
 app.get('/data', async (req, res) => {
     const referer = req.get('referer') || '';
-    if (!referer.startsWith(`${REFERER}`)) {
+    if (!referer.startsWith(`${REFERRER}`)) {
         return res.status(403).send('Forbidden');
     }
     try {

@@ -43,6 +43,8 @@ tofu/*.tfvars.json
 *.crt
 *.csr
 *.token
+gateway.txt
+referrer.txt
 secrets.json
 
 # --- System ---
