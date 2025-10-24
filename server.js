@@ -1,7 +1,6 @@
 //import 'dotenv/config'; //<-- for dev only
 import express from 'express';
-import rateLimit from 'express-rate-limit';
-import { readFile } from 'fs/promises';
+import { rateLimit } from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,7 +9,7 @@ import { fileURLToPath } from 'url';
 const fileName = fileURLToPath(import.meta.url);
 const dirName = path.dirname(fileName);
 
-// const { GATEWAY, REFERRER } = process.env;
+//const { GATEWAY, REFERRER } = process.env; //<-- for dev only
 const referrerPath = process.env.REFERRER;
 const gatewayPath = process.env.GATEWAY;
 
@@ -39,6 +38,7 @@ const dataLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => req.ip,
   message: { error: 'Request limit exceeded. ' },
+  validate: { keyGeneratorIpFallback: false }
 });
 
 // Serve files from here
