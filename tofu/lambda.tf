@@ -48,7 +48,7 @@ resource "aws_lambda_permission" "apigw_v2_exc" {
   function_name = aws_lambda_function.ipdb.arn
   principal     = "apigateway.amazonaws.com"
 
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/check"
+  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/$default/GET/check"
 }
 
 resource "aws_iam_role_policy_attachment" "basic_logs" {
