@@ -3,8 +3,7 @@ import json
 import os
 
 import boto3
-import httpx
-
+from httpx import HTTPStatusError, TimeoutException, RequestError, AsyncClient
 
 async def ipabuse_check(ip: str, ipdb_key: str):
     url = "https://api.abuseipdb.com/api/v2/check"
@@ -17,11 +16,19 @@ async def ipabuse_check(ip: str, ipdb_key: str):
         "maxAgeInDays": 90
     }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers, params=params)
-        response.raise_for_status()  # raises an error for bad responses
+    async with AsyncClient() as client:
+        try:
+            response = await client.get(url, headers=headers, params=params)
+            response.raise_for_status()  # raises the HTTPStatusError exception for bad responses
+        except (HTTPStatusError, TimeoutException, RequestError) as e:
+            # non-200 response, timeout error, or request error
+            return {"error": str(e), "exception": e.__class__.__name__}
 
-    return response.json().get("data", {})
+        try:
+            return response.json().get("data", {})
+        except json.JSONDecodeError as e:
+            return {"error": "Invalid JSON response", "exception": str(e)}
+
 
 async def async_handler(event, context):
     # get IP from event (API GW v2 HTTP example)
